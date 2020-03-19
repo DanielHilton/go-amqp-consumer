@@ -9,6 +9,17 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func processMessages(msgs <-chan amqp.Delivery) {
+	for d := range msgs {
+		l := struct {
+			t int64
+			b string
+		}{t: time.Now().Unix(), b: string(d.Body)}
+
+		fmt.Printf("Received message: %v\n", l)
+	}
+}
+
 // Create will create a channel and a consumer for the given queue name
 func Create(c *amqp.Connection, q string) {
 	ch, err := c.Channel()
@@ -19,16 +30,7 @@ func Create(c *amqp.Connection, q string) {
 
 	forever := make(chan bool)
 
-	go func() {
-		for d := range msgs {
-			l := struct {
-				t int64
-				b []byte
-			}{t: time.Now().Unix(), b: d.Body}
-
-			fmt.Printf("Received message: %s\n", l)
-		}
-	}()
+	go processMessages(msgs)
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
