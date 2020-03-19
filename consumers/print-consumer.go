@@ -21,7 +21,16 @@ func Create(c *amqp.Connection, q string) {
 
 	go func() {
 		for m := range msgs {
-			log.Println(json.Marshal(struct {time.Now(), m})
+			b, err := json.Marshal(struct {
+				x time.Time
+				y amqp.Delivery
+			}{x: time.Now(), y: m})
+
+			if err != nil {
+				log.Println((b))
+			} else {
+				log.Printf("%s", err)
+			}
 		}
 	}()
 

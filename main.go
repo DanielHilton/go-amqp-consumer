@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	printConsumer "github.com/DanielHilton/go-amqp-consumer/consumers"
 	H "github.com/DanielHilton/go-amqp-consumer/helpers"
 	"github.com/streadway/amqp"
 )
@@ -41,4 +42,5 @@ func main() {
 	err = ch.QueueBind("go-stuff", "test.go-stuff", "test", false, nil)
 	H.FailOnError(err, "Failed to bind queue to exchange")
 
+	printConsumer.Create(conn, "go-stuff")
 }
