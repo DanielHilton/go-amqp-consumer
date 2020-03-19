@@ -1,7 +1,7 @@
 package consumers
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -20,17 +20,13 @@ func Create(c *amqp.Connection, q string) {
 	forever := make(chan bool)
 
 	go func() {
-		for m := range msgs {
-			b, err := json.Marshal(struct {
-				x time.Time
-				y amqp.Delivery
-			}{x: time.Now(), y: m})
+		for d := range msgs {
+			l := struct {
+				t int64
+				b []byte
+			}{t: time.Now().Unix(), b: d.Body}
 
-			if err != nil {
-				log.Println((b))
-			} else {
-				log.Printf("%s", err)
-			}
+			fmt.Printf("Received message: %s\n", l)
 		}
 	}()
 
