@@ -2,48 +2,43 @@ package main
 
 import (
 	"fmt"
-	"log"
 
+	H "github.com/DanielHilton/go-amqp-consumer/helpers"
 	"github.com/streadway/amqp"
 )
 
 func main() {
-	qname := "go-stuff"
-	xname := "test"
+	q := "go-stuff"
+	x := "test"
 
 	uri := "amqp://guest:guest@localhost:5672/test"
 	conn, err := amqp.Dial(uri)
-	failOnError(err, "Failed to open a connection")
+	H.FailOnError(err, "Failed to open a connection")
 	fmt.Printf("Connected to %s successfully\n", uri)
 	defer conn.Close()
 
-	channel, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer channel.Close()
+	ch, err := conn.Channel()
+	H.FailOnError(err, "Failed to open a channel")
+	defer ch.Close()
 
-	err = channel.ExchangeDeclare(
-		xname, "fanout",
+	err = ch.ExchangeDeclare(
+		x, "fanout",
 		true, false, false, false, nil)
-	failOnError(err, "Failed to declare exchange")
-	fmt.Printf("Exchange %s declared\n", xname)
+	H.FailOnError(err, "Failed to declare exchange")
+	fmt.Printf("Exchange %s declared\n", x)
 
-	_, err = channel.QueueDeclare(
-		qname, // name
+	_, err = ch.QueueDeclare(
+		q,     // name
 		false, // durable
 		false, // delete when unused
 		false, // exclusive
 		false, // no-wait
 		nil,   // arguments
 	)
-	failOnError(err, "Failed to create queue")
-	fmt.Printf("Queue %s declared\n", qname)
+	H.FailOnError(err, "Failed to create queue")
+	fmt.Printf("Queue %s declared\n", q)
 
-	err = channel.QueueBind("go-stuff", "test.go-stuff", "test", false, nil)
-	failOnError(err, "Failed to bind queue to exchange")
-}
+	err = ch.QueueBind("go-stuff", "test.go-stuff", "test", false, nil)
+	H.FailOnError(err, "Failed to bind queue to exchange")
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s, %s", msg, err)
-	}
 }
