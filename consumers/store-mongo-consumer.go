@@ -8,8 +8,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// CreatePrintConsumer will create a channel and a consumer for the given queue name
-func CreatePrintConsumer(c *amqp.Connection, q string) {
+// CreateStoreMongoConsumer will create a channel and a consumer for the given queue name and store the message to MongoDB
+func CreateStoreMongoConsumer(c *amqp.Connection, q string) {
 	ch, err := c.Channel()
 	H.FailOnError(err, "Failed to create a channel for consumer")
 

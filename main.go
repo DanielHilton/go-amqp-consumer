@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
 
-	printConsumer "github.com/DanielHilton/go-amqp-consumer/consumers"
+	C "github.com/DanielHilton/go-amqp-consumer/consumers"
 	H "github.com/DanielHilton/go-amqp-consumer/helpers"
 	"github.com/streadway/amqp"
 )
 
 func main() {
-	q := "go-stuff"
-	x := "test"
+	exchange := "test"
 
-	uri := "amqp://guest:guest@localhost:5672/test"
+	uri := "amqp://guest:fishcake@localhost:5672/test"
 	conn, err := amqp.Dial(uri)
 	H.FailOnError(err, "Failed to open a connection")
 	fmt.Printf("Connected to %s successfully\n", uri)
@@ -23,24 +23,41 @@ func main() {
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		x, "fanout",
+		exchange, "fanout",
 		true, false, false, false, nil)
 	H.FailOnError(err, "Failed to declare exchange")
-	fmt.Printf("Exchange %s declared\n", x)
+	fmt.Printf("Exchange %s declared\n", exchange)
 
 	_, err = ch.QueueDeclare(
-		q,     // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		"go-stuff", // name
+		false,      // durable
+		false,      // delete when unused
+		false,      // exclusive
+		false,      // no-wait
+		nil,        // arguments
 	)
 	H.FailOnError(err, "Failed to create queue")
-	fmt.Printf("Queue %s declared\n", q)
+	fmt.Printf("Queue %s declared\n", "go-stuff")
+
+	_, err = ch.QueueDeclare(
+		"mongo-stuff", // name
+		false,         // durable
+		false,         // delete when unused
+		false,         // exclusive
+		false,         // no-wait
+		nil,           // arguments
+	)
+	H.FailOnError(err, "Failed to create queue")
+	fmt.Printf("Queue %s declared\n", "mongo-stuff")
 
 	err = ch.QueueBind("go-stuff", "test.go-stuff", "test", false, nil)
+	err = ch.QueueBind("mongo-stuff", "test.mongo-stuff", "test", false, nil)
 	H.FailOnError(err, "Failed to bind queue to exchange")
 
-	printConsumer.Create(conn, "go-stuff")
+	C.CreatePrintConsumer(conn, "go-stuff")
+	C.CreateStoreMongoConsumer(conn, "mongo-stuff")
+
+	forever := make(chan bool)
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
 }
