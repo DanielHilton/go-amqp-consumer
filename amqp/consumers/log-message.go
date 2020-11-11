@@ -15,7 +15,7 @@ func NewLogMessageConsumer(c *amqp.Connection, q string) {
 		var message structs.EnrichedMessage
 		json.Unmarshal(d.Body, &message)
 
-		fmt.Sprintf("Received message: %s\n", message)
+		fmt.Println("Loggy boi")
 		d.Ack(false)
 	})
 }
