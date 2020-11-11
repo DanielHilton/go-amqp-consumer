@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	C "github.com/DanielHilton/go-amqp-consumer/amqp/consumers"
 	H "github.com/DanielHilton/go-amqp-consumer/helpers"
@@ -27,10 +28,10 @@ func main() {
 	defer mongoClient.Disconnect(ctx)
 
 	exchange := "test"
-	amqpUri := "amqp://guest:guest@localhost:5672"
-	conn, err := amqp.Dial(amqpUri)
+	amqpURI := "amqp://guest:guest@localhost:5672"
+	conn, err := amqp.Dial(amqpURI)
 	H.FailOnError(err, "Failed to open a connection")
-	fmt.Printf("Connected to %s successfully\n", amqpUri)
+	fmt.Printf("Connected to %s successfully\n", amqpURI)
 	defer conn.Close()
 
 	ch, err := conn.Channel()
@@ -69,8 +70,8 @@ func main() {
 	err = ch.QueueBind("logMessage", "test.logmessage", "test", false, nil)
 	H.FailOnError(err, "Failed to bind queue to exchange")
 
-	C.CreateStoreMongoConsumer(conn, "enrichWithBibleVerse", mongoClient)
-	C.CreatePrintConsumer(conn, "logMessage")
+	C.NewEnrichWithBibleVerseConsumer(conn, "enrichWithBibleVerse", mongoClient)
+	C.NewLogMessageConsumer(conn, "logMessage")
 
 	forever := make(chan bool)
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
