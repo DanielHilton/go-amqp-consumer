@@ -1,10 +1,10 @@
 package consumers
 
 import (
+	"encoding/json"
 	"fmt"
-	"time"
-
 	A "github.com/DanielHilton/go-amqp-consumer/amqp"
+	"github.com/DanielHilton/go-amqp-consumer/structs"
 
 	"github.com/streadway/amqp"
 )
@@ -12,12 +12,10 @@ import (
 // NewLogMessageConsumer will create a channel and a consumer for the given queue name
 func NewLogMessageConsumer(c *amqp.Connection, q string) {
 	A.CreateConsumer(c, q, func(d amqp.Delivery) {
-		l := struct {
-			t int64
-			b string
-		}{t: time.Now().Unix(), b: string(d.Body)}
+		var message structs.EnrichedMessage
+		json.Unmarshal(d.Body, &message)
 
-		fmt.Printf("Received message: %v\n", l)
+		fmt.Printf("Received message: %v\n", message)
 		d.Ack(false)
 	})
 }
