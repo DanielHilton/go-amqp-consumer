@@ -21,6 +21,7 @@ func getBiblePassage() structs.BiblePassage {
 		fmt.Errorf("failed to get bible passage")
 		return structs.BiblePassage{}
 	}
+	fmt.Println("Got response from bible")
 
 	bytes, _ := ioutil.ReadAll(r.Body)
 
@@ -36,26 +37,27 @@ func getBiblePassage() structs.BiblePassage {
 // NewEnrichWithBibleVerseConsumer will create a channel and a consumer for the given queue name and store the message to MongoDB
 func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string, mc *mongo.Client) {
 	A.CreateConsumer(c, q, func(d amqp.Delivery) {
-		var message structs.EnrichedMessage
-		message.Timestamp = time.Now()
+		var enrichedMessage structs.EnrichedMessage
+		enrichedMessage.Timestamp = time.Now()
 
-		if msgErr := json.Unmarshal(d.Body, &message.AmqpMessage); msgErr != nil {
-			fmt.Errorf("failed to process message %s for queue %s. Error: %w", string(d.Body), q, msgErr)
+		if msgErr := json.Unmarshal(d.Body, &enrichedMessage.AMQPMessage); msgErr != nil {
+			fmt.Errorf("failed to process enrichedMessage %s for queue %s. Error: %w", string(d.Body), q, msgErr)
 			d.Nack(false, false)
 			return
 		}
-		fmt.Println("Enriching message")
+		fmt.Println("Enriching enrichedMessage")
 
-		message.BiblePassage = getBiblePassage()
+		enrichedMessage.BiblePassage = getBiblePassage()
 
 		coll := mc.Database("poc").Collection("go")
-		_, err := coll.InsertOne(context.Background(), message)
+		_, err := coll.InsertOne(context.Background(), enrichedMessage)
 		if err != nil {
 			fmt.Errorf("failed to insert into DB")
 			d.Nack(false, false)
 		}
 
-		A.PublishMessage(c, "test", "test.logmessage", d.Body)
+		bytes, _ := json.Marshal(enrichedMessage)
+		A.PublishMessage(c, "test", "test.logmessage", bytes)
 		d.Ack(false)
 	})
 }

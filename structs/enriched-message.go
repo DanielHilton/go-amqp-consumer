@@ -1,9 +1,19 @@
 package structs
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type EnrichedMessage struct {
-	AmqpMessage  interface{}
+	AMQPMessage  interface{}
 	Timestamp    time.Time
 	BiblePassage BiblePassage
+}
+
+// A "String() string" method for EnrichedMessage.
+func (a EnrichedMessage) String() string {
+	bytes, _ := json.Marshal(a)
+
+	return string(bytes)
 }

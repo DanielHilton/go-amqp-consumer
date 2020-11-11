@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	A "github.com/DanielHilton/go-amqp-consumer/amqp"
 	C "github.com/DanielHilton/go-amqp-consumer/amqp/consumers"
 	H "github.com/DanielHilton/go-amqp-consumer/helpers"
 	"github.com/streadway/amqp"
@@ -27,53 +28,31 @@ func main() {
 	}
 	defer mongoClient.Disconnect(ctx)
 
-	exchange := "test"
 	amqpURI := "amqp://guest:guest@localhost:5672"
 	conn, err := amqp.Dial(amqpURI)
-	H.FailOnError(err, "Failed to open a connection")
-	fmt.Printf("Connected to %s successfully\n", amqpURI)
+	H.ExitOnFail(err, "Failed to open a connection")
 	defer conn.Close()
 
-	ch, err := conn.Channel()
-	H.FailOnError(err, "Failed to open a channel")
-	defer ch.Close()
+	fmt.Printf("Connected to %s successfully\n", amqpURI)
 
-	err = ch.ExchangeDeclare(
-		exchange, "topic",
-		false, false, false, false, nil)
-	H.FailOnError(err, "Failed to declare exchange")
-	fmt.Printf("Exchange %s declared\n", exchange)
+	A.CreateExchange(conn, "test", "topic")
+	A.CreateQueue(conn, "enrichWithBibleVerse")
+	A.CreateQueue(conn, "logMessage")
 
-	_, err = ch.QueueDeclare(
-		"enrichWithBibleVerse", // name
-		false,                  // durable
-		false,                  // delete when unused
-		false,                  // exclusive
-		false,                  // no-wait
-		nil,                    // arguments
-	)
-	H.FailOnError(err, "Failed to create queue")
-	fmt.Printf("Queue %s declared\n", "enrichWithBibleVerse")
+	{
+		ch, _ := conn.Channel()
+		defer ch.Close()
 
-	_, err = ch.QueueDeclare(
-		"logMessage", // name
-		false,        // durable
-		false,        // delete when unused
-		false,        // exclusive
-		false,        // no-wait
-		nil,          // arguments
-	)
-	H.FailOnError(err, "Failed to create queue")
-	fmt.Printf("Queue %s declared\n", "logMessage")
-
-	err = ch.QueueBind("enrichWithBibleVerse", "test.enrichwithbibleverse", "test", false, nil)
-	err = ch.QueueBind("logMessage", "test.logmessage", "test", false, nil)
-	H.FailOnError(err, "Failed to bind queue to exchange")
+		err = ch.QueueBind("enrichWithBibleVerse", "test.enrichwithbibleverse", "test", false, nil)
+		H.ExitOnFail(err, "Failed to bind queue to exchange")
+		err = ch.QueueBind("logMessage", "test.logmessage", "test", false, nil)
+		H.ExitOnFail(err, "Failed to bind queue to exchange")
+	}
 
 	C.NewEnrichWithBibleVerseConsumer(conn, "enrichWithBibleVerse", mongoClient)
 	C.NewLogMessageConsumer(conn, "logMessage")
 
 	forever := make(chan bool)
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	log.Printf("The Golang POC has started")
 	<-forever
 }
