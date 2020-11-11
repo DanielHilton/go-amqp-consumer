@@ -10,7 +10,7 @@ import (
 func PublishMessage(c *AMQP.Connection, x string, rk string, b []byte) {
 	ch, chErr := c.Channel()
 	if chErr != nil {
-		fmt.Error("failed to create channel for publisher")
+		fmt.Errorf("failed to create channel for publisher: Error %w", chErr)
 		return
 	}
 	defer ch.Close()
