@@ -15,7 +15,7 @@ func CreateQueue(c *amqp.Connection, name string) amqp.Queue {
 	q, err := ch.QueueDeclare(name, false, false, false, false, nil)
 	H.ExitOnFail(err, "Queue declaration failed.")
 
-	fmt.Sprintf("%s Queue declared", name)
+	fmt.Printf("%s Queue declared\n", name)
 	return q
 }
 

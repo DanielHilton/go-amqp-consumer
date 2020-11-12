@@ -1,4 +1,4 @@
-package services
+package db
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var MongoClient *mongo.Client
 
 func GetSample() ([]structs.EnrichedMessage, error) {
 	coll := MongoClient.Database("poc").Collection("go")
@@ -27,4 +25,11 @@ func GetSample() ([]structs.EnrichedMessage, error) {
 
 	err = docs.All(context.Background(), &results)
 	return results, err
+}
+
+func InsertEnrichedMessage(message structs.EnrichedMessage) error {
+	coll := MongoClient.Database("poc").Collection("go")
+	_, err := coll.InsertOne(context.Background(), message)
+
+	return err
 }
