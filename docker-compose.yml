@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  rabbitmq:
+    image: rabbitmq:3.8.2-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+    networks:
+      - perftest
+  perf:
+    image: pivotalrabbitmq/perf-test:latest
+    depends_on:
+      - rabbitmq
+    networks:
+      - perftest
+    command: "--uri amqp://rabbitmq -k test.enrichwithbibleverse --exchange test -t topic -jb -r 10 -z 300 -y 0"
+networks:
+  perftest:
+    driver: bridge

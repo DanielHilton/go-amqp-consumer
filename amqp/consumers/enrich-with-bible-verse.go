@@ -13,24 +13,26 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func getBiblePassage() structs.BiblePassage {
+func getBiblePassage() (*structs.BiblePassage, error) {
 	r, err := http.Get("https://labs.bible.org/api/?type=json&passage=random")
 	defer r.Body.Close()
 	if err != nil {
 		fmt.Errorf("failed to get bible passage")
-		return structs.BiblePassage{}
+		return nil, err
 	}
 	fmt.Println("Got response from bible")
 
 	bytes, _ := ioutil.ReadAll(r.Body)
+	fmt.Print(string(bytes))
 
 	var passages []structs.BiblePassage
-	jsonErr := json.Unmarshal(bytes, &passages)
-	if jsonErr != nil {
+	err = json.Unmarshal(bytes, &passages)
+	if err != nil {
 		fmt.Errorf("failed to unmarshal %s", string(bytes))
+		return nil, err
 	}
 
-	return passages[0]
+	return &passages[0], nil
 }
 
 // NewEnrichWithBibleVerseConsumer will create a channel and a consumer for the given queue name and store the message to MongoDB
@@ -44,14 +46,22 @@ func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string) {
 			d.Nack(false, false)
 			return
 		}
-		fmt.Println("Enriching enrichedMessage")
 
-		enrichedMessage.BiblePassage = getBiblePassage()
-
-		err := db.InsertEnrichedMessage(enrichedMessage)
+		bp, err := getBiblePassage()
 		if err != nil {
-			fmt.Errorf("failed to insert into DB")
+			fmt.Errorf("failed to get bible passage %w", err)
 			d.Nack(false, false)
+			t <- time.Now()
+			return
+		}
+
+		enrichedMessage.BiblePassage = bp
+		err = db.InsertEnrichedMessage(enrichedMessage)
+		if err != nil {
+			fmt.Errorf("failed to insert into DB %w", err)
+			d.Nack(false, false)
+			t <- time.Now()
+			return
 		}
 
 		bytes, _ := json.Marshal(enrichedMessage)

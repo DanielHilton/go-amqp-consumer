@@ -12,5 +12,5 @@ func TimedHandler(w http.ResponseWriter, r *http.Request, f func(w http.Response
 	f(w, r)
 
 	elapsed := time.Since(now)
-	fmt.Printf("%s - %s - %s\n", r.Method, r.URL.Path, elapsed.String())
+	fmt.Printf("%s %s: %s\n", r.Method, r.URL.Path, elapsed.String())
 }

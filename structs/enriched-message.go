@@ -6,9 +6,9 @@ import (
 )
 
 type EnrichedMessage struct {
-	AMQPMessage  interface{}
-	Timestamp    time.Time
-	BiblePassage BiblePassage
+	AMQPMessage  interface{}   `json:"amqpMessage"`
+	Timestamp    time.Time     `json:"timestamp"`
+	BiblePassage *BiblePassage `json:"biblePassage"`
 }
 
 // A "String() string" method for EnrichedMessage.
