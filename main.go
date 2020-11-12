@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/DanielHilton/go-amqp-consumer/services"
 	"log"
 	"time"
 
@@ -16,17 +17,18 @@ import (
 )
 
 func main() {
-	mongoClient, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	mc, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = mongoClient.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer mongoClient.Disconnect(ctx)
+	services.MongoClient = mc
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	err = services.MongoClient.Connect(ctx)
+	H.ExitOnFail(err, "failed to connect to MongoDB")
+	defer cancel()
+	defer services.MongoClient.Disconnect(ctx)
 
 	amqpURI := "amqp://guest:guest@localhost:5672"
 	conn, err := amqp.Dial(amqpURI)
@@ -49,8 +51,10 @@ func main() {
 		H.ExitOnFail(err, "Failed to bind queue to exchange")
 	}
 
-	C.NewEnrichWithBibleVerseConsumer(conn, "enrichWithBibleVerse", mongoClient)
+	C.NewEnrichWithBibleVerseConsumer(conn, "enrichWithBibleVerse")
 	C.NewLogMessageConsumer(conn, "logMessage")
+
+	H.StartHttpServer(9000)
 
 	forever := make(chan bool)
 	log.Printf("The Golang POC has started")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/DanielHilton/go-amqp-consumer/services"
 	"github.com/DanielHilton/go-amqp-consumer/structs"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 
 	A "github.com/DanielHilton/go-amqp-consumer/amqp"
 	"github.com/streadway/amqp"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func getBiblePassage() structs.BiblePassage {
@@ -35,7 +35,7 @@ func getBiblePassage() structs.BiblePassage {
 }
 
 // NewEnrichWithBibleVerseConsumer will create a channel and a consumer for the given queue name and store the message to MongoDB
-func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string, mc *mongo.Client) {
+func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string) {
 	A.CreateConsumer(c, q, func(d amqp.Delivery) {
 		var enrichedMessage structs.EnrichedMessage
 		enrichedMessage.Timestamp = time.Now()
@@ -49,7 +49,7 @@ func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string, mc *mongo.Cli
 
 		enrichedMessage.BiblePassage = getBiblePassage()
 
-		coll := mc.Database("poc").Collection("go")
+		coll := services.MongoClient.Database("poc").Collection("go")
 		_, err := coll.InsertOne(context.Background(), enrichedMessage)
 		if err != nil {
 			fmt.Errorf("failed to insert into DB")
