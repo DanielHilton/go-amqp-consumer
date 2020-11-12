@@ -3,8 +3,8 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/DanielHilton/go-amqp-consumer/db"
 	"github.com/DanielHilton/go-amqp-consumer/helpers"
-	"github.com/DanielHilton/go-amqp-consumer/services/db"
 	"net/http"
 )
 

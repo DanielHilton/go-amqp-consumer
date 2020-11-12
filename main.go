@@ -4,9 +4,9 @@ import (
 	"fmt"
 	A "github.com/DanielHilton/go-amqp-consumer/amqp"
 	C "github.com/DanielHilton/go-amqp-consumer/amqp/consumers"
+	"github.com/DanielHilton/go-amqp-consumer/db"
 	H "github.com/DanielHilton/go-amqp-consumer/helpers"
-	"github.com/DanielHilton/go-amqp-consumer/services/db"
-	"github.com/DanielHilton/go-amqp-consumer/services/server"
+	"github.com/DanielHilton/go-amqp-consumer/server"
 	"github.com/streadway/amqp"
 	"log"
 )

@@ -3,7 +3,7 @@ package consumers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DanielHilton/go-amqp-consumer/services/db"
+	"github.com/DanielHilton/go-amqp-consumer/db"
 	"github.com/DanielHilton/go-amqp-consumer/structs"
 	"io/ioutil"
 	"net/http"

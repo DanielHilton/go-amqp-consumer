@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/DanielHilton/go-amqp-consumer/helpers"
-	"github.com/DanielHilton/go-amqp-consumer/services/server/routes"
+	"github.com/DanielHilton/go-amqp-consumer/server/routes"
 	"net/http"
 )
 
