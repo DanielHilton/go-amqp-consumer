@@ -14,7 +14,7 @@ import (
 var MongoClient *mongo.Client
 
 func Init() (context.Context, context.CancelFunc) {
-	mc, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	mc, err := mongo.NewClient(options.Client().ApplyURI(H.EnvVarOrFallback("MONGO_URI", "mongodb://localhost:27017")))
 	if err != nil {
 		log.Fatal(err)
 	}

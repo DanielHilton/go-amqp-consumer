@@ -16,7 +16,7 @@ func main() {
 	defer cancel()
 	defer db.MongoClient.Disconnect(ctx)
 
-	amqpURI := "amqp://guest:guest@localhost:5672"
+	amqpURI := H.EnvVarOrFallback("RABBIT_URI", "amqp://localhost:5672")
 	conn, err := amqp.Dial(amqpURI)
 	H.ExitOnFail(err, "Failed to open a connection")
 	defer conn.Close()
