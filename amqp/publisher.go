@@ -7,7 +7,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func PublishMessage(c *amqp.Connection, x string, rk string, b []byte) {
+func PublishMessage(c *amqp.Connection, xchg string, rkey string, b []byte) {
 	ch, chErr := c.Channel()
 	if chErr != nil {
 		fmt.Errorf("failed to create channel for publisher: Error %w", chErr)
@@ -22,8 +22,8 @@ func PublishMessage(c *amqp.Connection, x string, rk string, b []byte) {
 		Body:         b,
 	}
 
-	pubErr := ch.Publish(x, rk, false, false, msg)
+	pubErr := ch.Publish(xchg, rkey, false, false, msg)
 	if pubErr != nil {
-		fmt.Errorf("failed to publish message onto exchange %s, routing key %s", x, rk)
+		fmt.Errorf("failed to publish message onto exchange %s, routing key %s", xchg, rkey)
 	}
 }

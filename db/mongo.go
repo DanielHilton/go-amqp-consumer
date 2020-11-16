@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"log"
 	"time"
 )
 
@@ -15,9 +14,7 @@ var MongoClient *mongo.Client
 
 func Init() (context.Context, context.CancelFunc) {
 	mc, err := mongo.NewClient(options.Client().ApplyURI(H.EnvVarOrFallback("MONGO_URI", "mongodb://localhost:27017")))
-	if err != nil {
-		log.Fatal(err)
-	}
+	H.ExitOnFail(err, "failed to create client for mongo")
 
 	MongoClient = mc
 

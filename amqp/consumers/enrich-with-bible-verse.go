@@ -20,11 +20,8 @@ func getBiblePassage() (*structs.BiblePassage, error) {
 		fmt.Errorf("failed to get bible passage")
 		return nil, err
 	}
-	fmt.Println("Got response from bible")
 
 	bytes, _ := ioutil.ReadAll(r.Body)
-	fmt.Print(string(bytes))
-
 	var passages []structs.BiblePassage
 	err = json.Unmarshal(bytes, &passages)
 	if err != nil {
@@ -32,7 +29,13 @@ func getBiblePassage() (*structs.BiblePassage, error) {
 		return nil, err
 	}
 
-	return &passages[0], nil
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println("panic occurred", err)
+		}
+	}()
+
+	return &passages[0], err
 }
 
 // NewEnrichWithBibleVerseConsumer will create a channel and a consumer for the given queue name and store the message to MongoDB
@@ -44,6 +47,7 @@ func NewEnrichWithBibleVerseConsumer(c *amqp.Connection, q string) {
 		if msgErr := json.Unmarshal(d.Body, &enrichedMessage.AMQPMessage); msgErr != nil {
 			fmt.Errorf("failed to process enrichedMessage %s for queue %s. Error: %w", string(d.Body), q, msgErr)
 			d.Nack(false, false)
+			t <- time.Now()
 			return
 		}
 
